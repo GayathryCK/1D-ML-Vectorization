@@ -1,0 +1,56 @@
+RipsNet Entropy Regressor — Results Summary
+============================================================
+Date:           2026-03-17
+Dataset:        ModelNet40 (40 classes)
+  Train samples:  9,843
+  Test samples:   2,468
+  Points/cloud:   1,024
+Architecture:   RipsNet (official, DenseRagged + PermopRagged layers)
+Environment:    AWS EC2 (CPU), TensorFlow 2.21.0 / Keras 3.13.2 / Python 3.13
+
+Hyperparameters
+------------------------------------------------------------
+  Epochs:       100
+  Batch size:   32
+  LR:           5e-4(Adam)
+  Seed:         42
+  Normalize:    False
+
+Best Checkpoint: Epoch 81
+------------------------------------------------------------
+  Overall MAE:  0.7377
+  Overall RMSE: 1.3785
+  Overall MSE:  1.9003
+
+  Per-dimension MAE
+    H0:         0.0898
+    H1:         0.1872
+    H2:         1.9360
+
+  Per-dimension RMSE
+    H0:         0.1394
+    H1:         0.2648
+    H2:         2.3688
+
+  Per-dimension R²
+    H0:        -36.34   (near-zero variance in ground truth → metric unstable)
+    H1:         -0.076
+    H2:         +0.124
+    Mean R²:   -12.098
+
+Output Files
+------------------------------------------------------------
+  ripsnet_entropy_best.weights.h5   — saved model weights (best epoch)
+  best_test_predictions.csv         — predicted vs. ground truth for all 2,468 test clouds
+  best_test_metrics.json            — metrics at best epoch
+  training_history.csv              — per-epoch train/test loss + metrics (100 epochs)
+  ripsnet_train_config.json         — hyperparameter config used for training
+
+Notes
+------------------------------------------------------------
+- H0 R² is very negative due to near-zero variance in H0 ground truth values;
+  the raw MAE (0.09) is more meaningful for that dimension.
+- H2 dominates overall error; its high range and sparsity across classes
+  makes it the hardest dimension to regress.
+- These results serve as the RipsNet baseline for comparison against
+  the team's alternate approach.

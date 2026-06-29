@@ -1,0 +1,4 @@
+{
+  "num_points": 1024,
+  "architecture": "DenseRagged(64)-DenseRagged(64)-DenseRagged(32)-PermopRagged-Dense(256)-Dense(128)-Dense(64)-Dense(3)"
+}
