@@ -1,4 +1,4 @@
-# Pcd2Tvec: Efficient Approximation of Topological Descriptors from Point Clouds via Learned Representations
+# pcd2Tvec: Efficient Approximation of Topological Descriptors from Point Clouds via Learned Representations
 
 ---
 
