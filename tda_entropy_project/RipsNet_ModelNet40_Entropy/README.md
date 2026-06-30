@@ -30,7 +30,7 @@ pip install tensorflow numpy pandas tqdm
 
 ## Dataset
 
-ModelNet40: 9,843 train / 2,468 test, 40 categories.
+ModelNet40: 9,843 train / 2,468 test, 40 categories
 
 Ground-truth entropy labels (H0, H1, H2) must be pre-computed and provided as CSV files with columns: `sample_id`, `class_name`, `class_idx`, `H0`, `H1`, `H2`.
 
@@ -40,8 +40,13 @@ Ground-truth entropy labels (H0, H1, H2) must be pre-computed and provided as CS
 
 ```
 RipsNet_ModelNet40_Entropy/
-├── train_ripsnet_entropy.py       — training script
+├── train_ripsnet_entropy.py       — training script (used for entropy and amplitude)
 ├── predict_ripsnet_entropy.py     — inference script
+├── run_training.sh                — train RipsNet on ModelNet40 entropy
+├── run_all_amplitudes.sh          — train RipsNet on all 6 ModelNet40 amplitude metrics
+├── run_sonn_entropy.sh            — train RipsNet on ScanObjectNN entropy
+├── run_sonn_amplitudes.sh         — train RipsNet on all 7 ScanObjectNN amplitude metrics
+├── run_all_50ep.sh                — 50-epoch variants of all the above
 ├── ripsnet-main/
 │   └── utils.py                  — DenseRagged + PermopRagged layer definitions
 └── results/
@@ -57,7 +62,15 @@ RipsNet_ModelNet40_Entropy/
 
 ## Run Instructions
 
-### 1. Train RipsNet — ModelNet40
+The same training script handles both entropy and amplitude targets — the target type is determined by the ground truth CSV passed in.
+
+### 1. Train RipsNet — ModelNet40 Entropy
+
+```bash
+bash run_training.sh
+```
+
+Or manually:
 
 ```bash
 python train_ripsnet_entropy.py \
@@ -72,7 +85,29 @@ python train_ripsnet_entropy.py \
     --seed       42
 ```
 
-### 2. Predict with Trained Model — ModelNet40
+### 2. Train RipsNet — ModelNet40 Amplitude (all metrics)
+
+```bash
+bash run_all_amplitudes.sh
+```
+
+Trains sequentially over: `betti`, `heat`, `landscape`, `persistence_image`, `silhouette`, `wasserstein`. Output written to `amplitudes/amplitude_<metric>/ripsnet_out/`.
+
+### 3. Train RipsNet — ScanObjectNN Entropy
+
+```bash
+bash run_sonn_entropy.sh
+```
+
+### 4. Train RipsNet — ScanObjectNN Amplitude (all metrics)
+
+```bash
+bash run_sonn_amplitudes.sh
+```
+
+Trains sequentially over: `bottleneck`, `betti`, `heat`, `landscape`, `persistence_image`, `silhouette`, `wasserstein`.
+
+### 5. Predict with Trained Model
 
 ```bash
 python predict_ripsnet_entropy.py \
