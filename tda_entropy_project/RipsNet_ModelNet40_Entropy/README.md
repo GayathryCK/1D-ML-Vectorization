@@ -30,7 +30,7 @@ pip install tensorflow numpy pandas tqdm
 
 ## Dataset
 
-ModelNet40: 9,843 train / 2,468 test, 40 categories, 1,024 points per shape
+ModelNet40: 9,843 train / 2,468 test, 40 categories.
 
 Ground-truth entropy labels (H0, H1, H2) must be pre-computed and provided as CSV files with columns: `sample_id`, `class_name`, `class_idx`, `H0`, `H1`, `H2`.
 
