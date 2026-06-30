@@ -170,8 +170,7 @@ def compute_umap_joint(y_true: np.ndarray, y_pred: np.ndarray, seed: int = 42):
         n_components=2,
         n_neighbors=min(15, n - 1),
         min_dist=0.1,
-        metric="euclidean",
-        random_state=seed,
+        metric="euclidean", #random_state=seed,
     )
     emb = reducer.fit_transform(combined)
     return emb[:n], emb[n:]
@@ -250,9 +249,29 @@ def plot_overlay(emb_true, emb_pred, labels, title, out_path):
         bbox_to_anchor=(1.02, 1),
         loc="upper left"
     )
+    if "_" in title:
+        title = title.replace("_", " ")
+    if "amplitude" in title:
+        title = title.replace("amplitude", "Amplitude")
+    if "entropy" in title:
+        title = title.replace("entropy", "Entropy")
+    if "bottleneck" in title:
+        title = title.replace("bottleneck", "Bottleneck")
+    if "wasserstein" in title:
+        title = title.replace("wasserstein", "Wasserstein")
+    if "landscape" in title:
+        title = title.replace("landscape", "Landscape")
+    if "silhouette" in title:
+        title = title.replace("silhouette", "Silhouette")
+    if "heat" in title:
+        title = title.replace("heat", "Heat")
+    if "betti" in title:
+        title = title.replace("betti", "Betti")
+    if "persistence image" in title:
+        title = title.replace("persistence image", "Persistence Image")
     ax.set_title(title, fontsize=13)
-    ax.set_xlabel("Dim 1")
-    ax.set_ylabel("Dim 2")
+    ax.set_xlabel("", fontsize=16)
+    ax.set_ylabel("", fontsize=16)
     fig.tight_layout()
     fig.savefig(out_path, dpi=200, bbox_inches="tight")
     plt.close(fig)
@@ -264,111 +283,149 @@ def plot_overlay(emb_true, emb_pred, labels, title, out_path):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--pred_csv", type=str, default="")
+    parser.add_argument("--RIPS_pred_csv", type=str, default="")
     parser.add_argument("--out_dir", type=str, default="")
+    parser.add_argument("--RIPS_out_dir", type=str, default="")
     parser.add_argument("--amplitude_metric", type=str, default="bottleneck", choices=VALID_METRICS)
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
-    metric_root = Path(r"D:\GRE\PPT-Net\tda_vector_project\outputs") / f"amplitude_{args.amplitude_metric}"
+    dataset = "modelnet40"  # "modelnet40" or "sonn"
+    #types = ["amplitude_betti", "amplitude_bottleneck", "amplitude_heat", "amplitude_landscape", "amplitude_persistence_image", "amplitude_silhouette", "amplitude_wasserstein"]
+    types = ["entropy"]
 
-    if args.pred_csv == "":
-        args.pred_csv = str(metric_root / "train_results" / "best_test_predictions.csv")
+    for t in types:
+        # metric_root = Path(
+        #     rf"D:\Code\1D-TDA-Vector-Prediction\Data\OneDrive_1_5-11-2026\Ours Amplitudes SONN\SONN_amplitude_outputs\{t}\{t}\train_results"
+        # )
+        # RIPS_root = Path(
+        #     rf"D:\Code\1D-TDA-Vector-Prediction\Data\NEW ripsnet_50ep_results\ripsnet_50ep_results\SONN_amplitudes\{t}\ripsnet_out_50ep"
+        # )
+        #
+        #
+        #
+        # if t == "entropy":
+        #     metric_root = Path(
+        #         r"D:\Code\1D-TDA-Vector-Prediction\Data\OneDrive_1_5-11-2026\Ours entropy SONN\SONN_entropy_outputs\sonn_train_results\sonn"
+        #     )
+        #     RIPS_root = Path(
+        #         r"D:\Code\1D-TDA-Vector-Prediction\Data\NEW ripsnet_50ep_results\ripsnet_50ep_results\SONN_entropy\ripsnet_out_50ep"
+        #     )
+        if t != "entropy":  # for amplitude types
+            if dataset == "modelnet40":
+                metric_root = Path(
+                    rf"D:\Code\1D-TDA-Vector-Prediction\Data\OneDrive_1_5-11-2026\Ours amplitudes MN40\{t}\{t}\train_results")
+                RIPS_root = Path(
+                    rf"D:\Code\1D-TDA-Vector-Prediction\Data\NEW ripsnet_50ep_results\ripsnet_50ep_results\amplitudes\{t}\ripsnet_out_50ep")
+                dataset_title = "ModelNet40"
+            else:
+                metric_root = Path(
+                    rf"D:\Code\1D-TDA-Vector-Prediction\Data\OneDrive_1_5-11-2026\Ours Amplitudes SONN\SONN_amplitude_outputs\{t}\{t}\train_results")
+                RIPS_root = Path(
+                    rf"D:\Code\1D-TDA-Vector-Prediction\Data\NEW ripsnet_50ep_results\ripsnet_50ep_results\SONN_amplitudes\{t}\ripsnet_out_50ep")
+                dataset_title = "SONN"
+        if t == "entropy":
+            if dataset == "modelnet40":
+                metric_root = Path(
+                    rf"D:\Code\1D-TDA-Vector-Prediction\Data\OneDrive_1_5-11-2026\Ours entropy MN40\train_entropy_50")
+                RIPS_root = Path(
+                    rf"D:\Code\1D-TDA-Vector-Prediction\Data\NEW ripsnet_50ep_results\mn40_ripsnet_entropy_50ep_results\ripsnet_entropy_50ep_out")
+                dataset_title = "ModelNet40"
+            else:
+                metric_root = Path(
+                    rf"D:\Code\1D-TDA-Vector-Prediction\Data\OneDrive_1_5-11-2026\Ours entropy SONN\SONN_entropy_outputs\sonn_train_results\sonn")
+                RIPS_root = Path(
+                    rf"D:\Code\1D-TDA-Vector-Prediction\Data\NEW ripsnet_50ep_results\ripsnet_50ep_results\SONN_entropy\ripsnet_out_50ep")
+                dataset_title = "SONN"
 
-    if args.out_dir == "":
-        args.out_dir = str(metric_root / "structure_eval")
+        pred_csv_ours = metric_root / "best_test_predictions.csv"
+        pred_csv_rips = RIPS_root / "best_test_predictions.csv"
 
-    pred_csv = Path(args.pred_csv)
-    out_dir = Path(args.out_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
+        out_dir_ours = Path(f"plots/structure_eval_{t}")
+        out_dir_rips = Path(f"plots/RIPSNet_structure_eval_{t}")
 
-    df, y_true, y_pred, labels, sample_ids, class_idxs = load_prediction_csv(pred_csv)
+        for baseline, pred_csv, out_dir in [
+            ("ours", pred_csv_ours, out_dir_ours),
+            ("rips", pred_csv_rips, out_dir_rips),
+        ]:
+            out_dir.mkdir(parents=True, exist_ok=True)
 
-    print("=" * 70)
-    print("Vector Structure Evaluation")
-    print("=" * 70)
-    print(f"pred_csv          : {pred_csv}")
-    print(f"out_dir           : {out_dir}")
-    print(f"amplitude_metric  : {args.amplitude_metric}")
-    print(f"num_samples       : {len(df)}")
-    print("=" * 70)
+            df, y_true, y_pred, labels, sample_ids, class_idxs = load_prediction_csv(pred_csv)
 
-    # Distance matrix correlations
-    dist_metrics, D_true, D_pred = compute_distance_matrix_correlations(y_true, y_pred)
+            dist_metrics, D_true, D_pred = compute_distance_matrix_correlations(y_true, y_pred)
 
-    # Overlap @ k
-    overlap_metrics, overlap_df = compute_overlap_at_k(
-        y_true, y_pred, sample_ids, labels, class_idxs, ks=(1, 5, 10)
-    )
+            overlap_metrics, overlap_df = compute_overlap_at_k(
+                y_true, y_pred, sample_ids, labels, class_idxs, ks=(1, 5, 10)
+            )
 
-    # Save structure metrics
-    structure_metrics = {
-        "num_samples": int(len(df)),
-        **dist_metrics,
-        **overlap_metrics,
-    }
+            structure_metrics = {
+                "num_samples": int(len(df)),
+                **dist_metrics,
+                **overlap_metrics,
+            }
 
-    with open(out_dir / "structure_metrics.json", "w", encoding="utf-8") as f:
-        json.dump(structure_metrics, f, indent=2)
+            # with open(out_dir / "structure_metrics.json", "w", encoding="utf-8") as f:
+            #     json.dump(structure_metrics, f, indent=2)
+            #
+            # overlap_df.to_csv(out_dir / "knn_overlap_per_sample.csv", index=False)
 
-    overlap_df.to_csv(out_dir / "knn_overlap_per_sample.csv", index=False)
+            # print("Saved:")
+            # print(out_dir / "structure_metrics.json")
+            # print(out_dir / "knn_overlap_per_sample.csv")
 
-    print("Saved:")
-    print(out_dir / "structure_metrics.json")
-    print(out_dir / "knn_overlap_per_sample.csv")
-
-    # t-SNE
-    print("\nComputing joint t-SNE...")
-    tsne_true, tsne_pred = compute_tsne_joint(y_true, y_pred, seed=args.seed)
-
-    plot_single_embedding(
-        tsne_true, labels,
-        f"t-SNE True ({args.amplitude_metric})",
-        out_dir / "tsne_true.png"
-    )
-    plot_single_embedding(
-        tsne_pred, labels,
-        f"t-SNE Predicted ({args.amplitude_metric})",
-        out_dir / "tsne_pred.png"
-    )
-    plot_overlay(
-        tsne_true, tsne_pred, labels,
-        f"t-SNE Overlay: True (o) vs Predicted (x) [{args.amplitude_metric}]",
-        out_dir / "tsne_overlay.png"
-    )
-
-    print("Saved:")
-    print(out_dir / "tsne_true.png")
-    print(out_dir / "tsne_pred.png")
-    print(out_dir / "tsne_overlay.png")
+            # t-SNE
+            # print("\n Computing joint t-SNE...")
+            # tsne_true, tsne_pred = compute_tsne_joint(y_true, y_pred, seed=args.seed)
+            #
+            # plot_single_embedding(
+            #     tsne_true, labels,
+            #     f"t-SNE True ({args.amplitude_metric})",
+            #     out_dir / "tsne_true.png"
+            # )
+            # plot_single_embedding(
+            #     tsne_pred, labels,
+            #     f"t-SNE Predicted ({args.amplitude_metric})",
+            #     out_dir / "tsne_pred.png"
+            # )
+            # plot_overlay(
+            #     tsne_true, tsne_pred, labels,
+            #     f"t-SNE Overlay: True (o) vs Predicted (x) [{args.amplitude_metric}]",
+            #     out_dir / "tsne_overlay.png"
+            # )
+            #
+            # print("Saved:")
+            # print(out_dir / "tsne_true.png")
+            # print(out_dir / "tsne_pred.png")
+            # print(out_dir / "tsne_overlay.png")
 
 
-        print("\nComputing joint UMAP...")
-        umap_true, umap_pred = compute_umap_joint(y_true, y_pred, seed=args.seed)
+            print("\nComputing joint UMAP...")
+            umap_true, umap_pred = compute_umap_joint(y_true, y_pred, seed=args.seed)
+            #
+            # plot_single_embedding(
+            #     umap_true, labels,
+            #     f"UMAP True ({t})",
+            #     out_dir / f"umap_true_{t}.png"
+            # )
+            # plot_single_embedding(
+            #     umap_pred, labels,
+            #     f"UMAP Predicted ({t})",
+            #     out_dir / f"umap_pred_{t}.png"
+            # )
+            plot_overlay(
+                umap_true, umap_pred, labels,
+                f"UMAP Overlay: True (o) vs Predicted (x) [{t}]",
+                out_dir / f"umap_overlay_{t}.png"
+            )
+            #
+            # print("Saved:")
+            # print(out_dir / f"umap_true_{t}.png")
+            # print(out_dir / f"umap_pred_{t}.png")
+            print(out_dir / f"umap_overlay_{t}.png")
 
-        plot_single_embedding(
-            umap_true, labels,
-            f"UMAP True ({args.amplitude_metric})",
-            out_dir / "umap_true.png"
-        )
-        plot_single_embedding(
-            umap_pred, labels,
-            f"UMAP Predicted ({args.amplitude_metric})",
-            out_dir / "umap_pred.png"
-        )
-        plot_overlay(
-            umap_true, umap_pred, labels,
-            f"UMAP Overlay: True (o) vs Predicted (x) [{args.amplitude_metric}]",
-            out_dir / "umap_overlay.png"
-        )
-
-        print("Saved:")
-        print(out_dir / "umap_true.png")
-        print(out_dir / "umap_pred.png")
-        print(out_dir / "umap_overlay.png")
-
-    print("\nSummary:")
-    for k, v in structure_metrics.items():
-        print(f"{k}: {v}")
+            print(f"\n ----------------- Summary for {baseline} with metric {t} ----------------------")
+            # for [k, v] in structure_metrics.items():
+            #     print(f"{k}: {v}")
 
 
 if __name__ == "__main__":
